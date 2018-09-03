@@ -39,6 +39,8 @@ class TestClient(val server: HttpServer, implicit val mat: ActorMaterializer) ex
 
   def updateMessage(id: UUID, message: Message): Future[Message] = makePutRequest(Uri(path = /("messages")/id.toString), message)
 
+  def updateMessage(id: UUID): Future[Message] = makePutRequest(Uri(path = /("messages")/id.toString))
+
   def deleteMessage(id: UUID): Future[String] = makeDeleteRequest[String](Uri(path = /("messages")/id.toString))
 }
 
@@ -89,13 +91,24 @@ class ServiceClientTest extends FunSpec with Matchers with ScalaFutures with Moc
       }
     }
 
-    it("should be able to make PUT requests to existing resources") {
+    it("should be able to make PUT requests with payloads to existing resources") {
       val id = UUID.randomUUID
 
       when(mockServer.sendPutRequest(eqTo(s"/messages/$id"), any()))
         .thenReturn(Future.successful(HttpResponse(status = StatusCodes.OK, entity = Marshal(Envelope("OK", message)).to[ResponseEntity].futureValue)))
 
       whenReady(client.updateMessage(id, message)) { response =>
+        response shouldBe message
+      }
+    }
+
+    it("should be able to make PUT requests to existing resources") {
+      val id = UUID.randomUUID
+
+      when(mockServer.sendPutRequest(eqTo(s"/messages/$id")))
+        .thenReturn(Future.successful(HttpResponse(status = StatusCodes.OK, entity = Marshal(Envelope("OK", message)).to[ResponseEntity].futureValue)))
+
+      whenReady(client.updateMessage(id)) { response =>
         response shouldBe message
       }
     }

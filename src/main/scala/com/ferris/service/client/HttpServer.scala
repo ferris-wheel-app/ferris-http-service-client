@@ -23,6 +23,8 @@ trait HttpServer {
 
   def sendPutRequest(requestUri: Uri, entity: RequestEntity): Future[HttpResponse]
 
+  def sendPutRequest(requestUri: Uri): Future[HttpResponse]
+
   def sendDeleteRequest(requestUri: Uri): Future[HttpResponse]
 
 }
@@ -48,6 +50,11 @@ class DefaultServer(val uri: Uri)(implicit val mat: ActorMaterializer, val syste
   override def sendPutRequest(requestUri: Uri, entity: RequestEntity): Future[HttpResponse] = {
     val finalUri = resolveUri(requestUri)
     http.singleRequest(HttpRequest(method = HttpMethods.PUT, uri = finalUri, entity = entity))
+  }
+
+  override def sendPutRequest(requestUri: Uri): Future[HttpResponse] = {
+    val finalUri = resolveUri(requestUri)
+    http.singleRequest(HttpRequest(method = HttpMethods.PUT, uri = finalUri))
   }
 
   override def sendDeleteRequest(requestUri: Uri): Future[HttpResponse] = {

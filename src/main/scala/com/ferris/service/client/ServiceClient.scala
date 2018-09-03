@@ -44,6 +44,13 @@ trait ServiceClient {
     } yield data.data
   }
 
+  protected def makePutRequest[T, U](path: Uri)(implicit tf: JsonFormat[T], uf: JsonFormat[U]): Future[U] = {
+    for {
+      resp <- server.sendPutRequest(path) map { checkSuccess(_, path) }
+      data <- Unmarshal(resp.entity).to[Envelope[U]]
+    } yield data.data
+  }
+
   protected def makePostRequest[T, U](path: Uri, obj: T)(implicit tf: JsonFormat[T], uf: JsonFormat[U]): Future[U] = {
     for {
       ent <- Marshal(obj.toJson).to[RequestEntity]
